@@ -1,0 +1,7 @@
+# Build artifacts
+linux64GccDPInt32Opt/
+lnInclude/
+*.o
+*.dep
+dynamicCode/
+processor*/

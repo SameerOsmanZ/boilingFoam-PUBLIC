@@ -1,9 +1,0 @@
-SOURCE = \
-interfacePropertiesBoiling.C \
-curvatureModels/curvatureModel/curvatureModel.C \
-curvatureModels/curvatureModel/curvatureModelNew.C \
-curvatureModels/gradAlphaCurvature/gradAlphaCurvature.C \
-curvatureModels/gradRDFCurvature/gradRDFCurvature.C \
-curvatureModels/fixedCurvature/fixedCurvature.C \
-
-# sources
