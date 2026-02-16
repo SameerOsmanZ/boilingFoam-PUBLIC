@@ -1,0 +1,41 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+nProcs=16
+
+#-- Step 1: Generate base mesh
+runApplication blockMesh
+
+#-- Step 2: Create fluid/solid cellZones
+runApplication topoSet
+mv log.topoSet log.topoSet.init
+
+#-- Step 3: Copy initial conditions
+rm -rf 0
+cp -r orig.0 0
+
+#-- Step 4: Split mesh into fluid and solid regions
+runApplication splitMeshRegions -cellZones -overwrite
+rm -rf constant/polyMesh
+
+#-- Step 5: Create adiabaticWall patch in fluid region
+#   (carved from fluid_to_solid interface using topoSet + createPatch)
+runApplication topoSet -region fluid
+mv log.topoSet log.topoSet.fluid
+runApplication createPatch -region fluid -overwrite
+
+#-- Step 6: Fix cellToRegion boundary conditions
+runApplication changeDictionary -region fluid
+mv log.changeDictionary log.changeDictionary.fluid
+runApplication changeDictionary -region solid
+mv log.changeDictionary log.changeDictionary.solid
+
+#-- Step 7: Decompose and run in parallel
+runApplication decomposePar -allRegions
+mpirun -np $nProcs icoBoilingFoam -parallel > log.icoBoilingFoam 2>&1
+runApplication reconstructPar -allRegions -latestTime
+
+#------------------------------------------------------------------------------

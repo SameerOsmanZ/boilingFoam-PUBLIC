@@ -1,0 +1,35 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2506                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _f917e866-20250814 OPENFOAM=2506 patch=250814 version=2506
+Arch   : "LSB;label=32;scalar=64"
+Exec   : setAlphaField -region fluid
+Date   : Feb 15 2026
+Time   : 21:13:55
+Host   : Alien
+PID    : 22275
+I/O    : uncollated
+Case   : /home/sameer/OpenFOAM/sameer-v2506/boilingFoam/cases/nucleateBoiling_BuresSato/twoPhase
+nProcs : 1
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh fluid for time = 0
+
+
+--> FOAM FATAL ERROR: (openfoam-2506 patch=250814)
+Cannot find file "points" in directory "fluid/polyMesh" in times "0" down to constant
+
+    From virtual Foam::IOobject Foam::fileOperation::findInstance(const Foam::IOobject&, Foam::scalar, const Foam::word&, bool) const
+    in file global/fileOperations/fileOperation/fileOperation.C at line 1225.
+
+FOAM exiting
+

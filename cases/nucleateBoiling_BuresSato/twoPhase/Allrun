@@ -1,0 +1,37 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+nProcs=16
+
+#-- Step 1: Copy mesh, properties, system, and simSetup from singlePhase
+cp -r ../singlePhase/constant .
+cp -r ../singlePhase/system .
+cp -r ../singlePhase/simSetup .
+
+#-- Step 2: Copy latest converged fields from singlePhase and reset to t=0
+latestTime=$(ls -1d ../singlePhase/[0-9]* 2>/dev/null \
+    | grep -v 'orig' | sort -t/ -k3 -g | tail -1)
+if [ -z "$latestTime" ]; then
+    echo "Error: no converged time directory found in ../singlePhase/"
+    exit 1
+fi
+cp -r "$latestTime" 0
+rm -f 0/uniform/time
+
+#-- Step 3: Swap in two-phase configuration files
+cp system/controlDict.tp system/controlDict
+cp system/heater/fvOptions.tp system/heater/fvOptions
+cp system/fluid/fvSolution.tp system/fluid/fvSolution
+
+#-- Step 4: Seed initial bubble via setAlphaField
+runApplication setAlphaField -region fluid
+
+#-- Step 5: Decompose and run in parallel
+runApplication decomposePar -allRegions
+mpirun -np $nProcs icoBoilingFoam -parallel > log.icoBoilingFoam 2>&1
+runApplication reconstructPar -allRegions -latestTime
+
+#------------------------------------------------------------------------------

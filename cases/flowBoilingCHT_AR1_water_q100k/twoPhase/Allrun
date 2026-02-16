@@ -1,0 +1,31 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+nProcs=16
+
+#-- Step 1: Copy mesh and material properties from converged singlePhase
+#   This brings constant/fluid/polyMesh, constant/solid/polyMesh,
+#   transportProperties, thermophysicalProperties, etc.
+cp -r ../singlePhase/constant .
+
+#-- Step 2: Copy latest converged fields from singlePhase and reset to t=0
+#   The singlePhase produces a time directory (e.g. 0.005) with developed
+#   temperature and velocity fields. We copy it and rename to 0.
+rm -rf 0
+cp -r ../singlePhase/0.* .
+mv 0.* 0
+rm -f 0/uniform/time
+
+#-- Step 3: Seed initial bubble via setFields
+#   setFieldsDict places a small vapour bubble near the heated wall
+runApplication setFields -region fluid
+
+#-- Step 4: Decompose and run in parallel
+runApplication decomposePar -allRegions
+mpirun -np $nProcs icoBoilingFoam -parallel > log.icoBoilingFoam 2>&1
+runApplication reconstructPar -allRegions -latestTime
+
+#------------------------------------------------------------------------------

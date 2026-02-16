@@ -1,0 +1,32 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+nProcs=16
+
+#-- Step 1: Copy mesh, properties, and system from singlePhase
+cp -r ../singlePhase/constant .
+cp -r ../singlePhase/system .
+
+#-- Step 2: Swap in two-phase configuration files
+mv system/controlDict.tp system/controlDict
+mv system/fluid/fvSchemes.tp system/fluid/fvSchemes
+mv system/fluid/fvSolution.tp system/fluid/fvSolution
+
+#-- Step 3: Copy latest converged fields from singlePhase and reset to t=0
+rm -rf 0
+cp -r ../singlePhase/0.* .
+mv 0.* 0
+rm -f 0/uniform/time
+
+#-- Step 4: Seed initial bubble via setFields
+runApplication setFields -region fluid
+
+#-- Step 5: Decompose and run in parallel
+runApplication decomposePar -region fluid
+mpirun -np $nProcs icoBoilingFoam -parallel > log.icoBoilingFoam 2>&1
+runApplication reconstructPar -region fluid -latestTime
+
+#------------------------------------------------------------------------------
